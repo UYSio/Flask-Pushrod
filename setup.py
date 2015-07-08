@@ -18,10 +18,10 @@ class PyTest(TestCommand):
 
 setup(
     name='Flask-Pushrod',
-    version='0.2.dev',
-    url='http://github.com/opyate/flask-pushrod',
+    version='0.3',
+    url='http://github.com/UYSio/flask-pushrod',
     license='MIT',
-    author='Juan Uys',
+    author='Juan Matthys Uys',
     author_email='opyate+flaskpushrod@gmail.com',
     description='Views for your API',
     long_description=open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')).read(),
@@ -45,10 +45,13 @@ setup(
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
+        'Framework :: Flask',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
