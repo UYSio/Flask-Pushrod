@@ -16,6 +16,8 @@ def jinja2_renderer(unrendered, jinja_template=None, **kwargs):
     """
 
     if jinja_template:
+        if callable(jinja_template):
+            jinja_template = jinja_template()
         return unrendered.rendered(
             flask.render_template(jinja_template, **unrendered.response),
             'text/html')

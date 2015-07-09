@@ -323,15 +323,22 @@ class PushrodRendererTestCase(PushrodTestCase):
         self.pushrod.render_response(
             test_response, [jinja2_renderer, json_renderer])
 
-    def test_jinja_renderer(self):
+    def _jinja_renderer(self, template):
         regular = test_response_str
 
         with self.app.test_request_context():
             flask.current_app
             rendered = self.pushrod.render_response(
-                test_response, jinja2_renderer, {'jinja_template': 'jinja.txt'})
+                test_response, jinja2_renderer, {'jinja_template': template})
 
         assert regular == rendered.data.decode('utf-8'), \
             "'%s' does not equal '%s'" % (rendered.data, regular)
 
         assert eval(rendered.data) == test_response
+
+    def test_jinja_renderer(self):
+        self._jinja_renderer('jinja.txt')
+
+    def test_jinja_callable_renderer(self):
+        self._jinja_renderer(lambda: 'jinja.txt')
+
