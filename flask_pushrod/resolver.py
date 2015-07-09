@@ -17,11 +17,14 @@ from types import GeneratorType
 
 NoneType = type(None)
 
+
 class Pushrod(object):
     """
     The main resolver class for Pushrod.
 
-    :param renderers: A tuple of renderers that are registered immediately (can also be strings, which are currently expanded to flask.ext.pushrod.renderers.%s_renderer)
+    :param renderers: A tuple of renderers that are registered
+    immediately (can also be strings, which are currently expanded to
+    flask.ext.pushrod.renderers.%s_renderer)
     """
 
     #: The query string argument checked for an explicit renderer (to override header-based content type negotiation).
@@ -49,7 +52,10 @@ class Pushrod(object):
         else:
             return logging
 
-    def __init__(self, app=None, renderers=('json', 'jinja2',), default_renderer='html'):
+    def __init__(self,
+                 app=None,
+                 renderers=('json', 'jinja2', ),
+                 default_renderer='html'):
         #: The renderers keyed by MIME type.
         self.mime_type_renderers = {}
         #: The renderers keyed by output format name (such as html).
@@ -90,7 +96,9 @@ class Pushrod(object):
             if default_renderer in self.named_renderers:
                 default_renderer = self.named_renderers[default_renderer]
             else:
-                self.logger.warning(u"Attempted to set the unrenderable format '%s' as the default format, disabling", default_renderer)
+                self.logger.warning(
+                    u"Attempted to set the unrenderable format '%s' as the default format, disabling",
+                    default_renderer)
                 default_renderer = None
         self.default_renderer = default_renderer
 
@@ -99,17 +107,20 @@ class Pushrod(object):
 
     def init_app(self, app):
         """
-        Registers the Pushrod resolver with the Flask app (can also be done by passing the app to the constructor).
+        Registers the Pushrod resolver with the Flask app (can also
+        be done by passing the app to the constructor).
         """
 
         app.extensions['pushrod'] = self
 
     def register_renderer(self, renderer, default=False):
         """
-        Registers a renderer with the Pushrod resolver (can also be done by passing the renderer to the constructor).
+        Registers a renderer with the Pushrod resolver (can also be done
+        by passing the renderer to the constructor).
         """
 
-        if not (hasattr(renderer, '_is_pushrod_renderer') and renderer._is_pushrod_renderer):
+        if not (hasattr(renderer, '_is_pushrod_renderer') and
+                renderer._is_pushrod_renderer):
             raise TypeError(u'Got passed an invalid renderer')
 
         for name in renderer.renderer_names:
@@ -120,14 +131,21 @@ class Pushrod(object):
 
     def get_renderers_for_request(self, request=None):
         """
-        Inspects a Flask :class:`~flask.Request` for hints regarding what renderer to use.
+        Inspects a Flask :class:`~flask.Request` for hints regarding what
+        renderer to use.
 
-        This is found out by first looking in the query string argument named after :attr:`~format_arg_name` (``format`` by default), and then matching the contents of the Accept:-header. If nothing is found anyway, then :attr:`~default_renderer` is used.
+        This is found out by first looking in the query string argument
+        named after :attr:`~format_arg_name` (``format`` by default),
+        and then matching the contents of the Accept:-header. If nothing
+        is found anyway, then :attr:`~default_renderer` is used.
 
         .. note::
-           If the query string argument is specified but doesn't exist (or fails), then the request fails immediately, without trying the other methods.
+           If the query string argument is specified but doesn't exist
+           (or fails), then the request fails immediately, without trying
+           the other methods.
 
-        :param request: The request to be inspected (defaults to :obj:`flask.request`)
+        :param request: The request to be inspected (defaults to
+          :obj:`flask.request`)
         :returns: List of matching renderers, in order of user preference
         """
 
@@ -143,14 +161,17 @@ class Pushrod(object):
                 return []
 
         try:
-            matching_renderers = [self.mime_type_renderers[mime_type]
-                               for mime_type in request.accept_mimetypes.itervalues()
-                               if mime_type in self.mime_type_renderers]
+            matching_renderers = [
+                self.mime_type_renderers[mime_type]
+                for mime_type in request.accept_mimetypes.itervalues()
+                if mime_type in self.mime_type_renderers
+            ]
         except:
-            matching_renderers = [self.mime_type_renderers[mime_type]
-                               for mime_type in request.accept_mimetypes.values()
-                               if mime_type in self.mime_type_renderers]
-
+            matching_renderers = [
+                self.mime_type_renderers[mime_type]
+                for mime_type in request.accept_mimetypes.values()
+                if mime_type in self.mime_type_renderers
+            ]
 
         if self.default_renderer:
             matching_renderers.append(self.default_renderer)
@@ -159,9 +180,12 @@ class Pushrod(object):
 
     def render_response(self, response, renderer=None, renderer_kwargs=None):
         """
-        Renders an unrendered response (a bare value, a (response, status, headers)-:obj:`tuple`, or an :class:`~flask.ext.pushrod.renderers.UnrenderedResponse` object).
+        Renders an unrendered response (a bare value, a (response, status, headers)-:obj:`tuple`,
+        or an :class:`~flask.ext.pushrod.renderers.UnrenderedResponse` object).
 
-        :throws RendererNotFound: If a usable renderer could not be found (explicit renderer argument points to an invalid render, or no acceptable mime types can be used as targets and there is no default renderer)
+        :throws RendererNotFound: If a usable renderer could not be found (explicit renderer
+          argument points to an invalid render, or no acceptable mime types can be used as
+          targets and there is no default renderer)
         :param response: The response to render
         :param renderer: The renderer(s) to use (defaults to using :meth:`get_renderer_for_request`)
         :param renderer_kwargs: Any extra arguments to pass to the renderer
@@ -204,12 +228,20 @@ class Pushrod(object):
 
     def normalize(self, obj):
         """
-        Runs an object through the normalizer mechanism, with the goal of producing a value consisting only of "native types" (:obj:`unicode`, :obj:`int`, :obj:`long`, :obj:`float`, :obj:`dict`, :obj:`list`, etc).
+        Runs an object through the normalizer mechanism, with the goal
+        of producing a value consisting only of "native types"
+        (:obj:`unicode`, :obj:`int`, :obj:`long`, :obj:`float`,
+        :obj:`dict`, :obj:`list`, etc).
 
         The resolution order looks like this:
 
-        - Loop through :attr:`self.normalizer_overrides[type(obj)] <normalizer_overrides>` (taking parent classes into account), should be a callable taking (obj, pushrod), falls through on :obj:`NotImplemented`
-        - :attr:`self.normalizers[type(obj)] <normalizers>` (taking parent classes into account), should be a callable taking (obj, pushrod), falls through on :obj:`NotImplemented`
+        - Loop through :attr:`self.normalizer_overrides[type(obj)]
+          <normalizer_overrides>` (taking parent classes into account),
+          should be a callable taking (obj, pushrod), falls through
+          on :obj:`NotImplemented`
+        - :attr:`self.normalizers[type(obj)] <normalizers>` (taking
+          parent classes into account), should be a callable taking
+          (obj, pushrod), falls through on :obj:`NotImplemented`
 
         See :ref:`bundled-normalizers` for all default normalizers.
 
@@ -237,10 +269,12 @@ class Pushrod(object):
 
 def pushrod_view(**renderer_kwargs):
     """
-    Decorator that wraps view functions and renders their responses through :meth:`flask.ext.pushrod.Pushrod.render_response`.
+    Decorator that wraps view functions and renders their responses
+    through :meth:`flask.ext.pushrod.Pushrod.render_response`.
 
     .. note::
-       Views should only return :obj:`dicts <dict>` or a type that :meth:`normalizes <Pushrod.normalize>` down to :obj:`dicts <dict>`.
+       Views should only return :obj:`dicts <dict>` or a type that
+       :meth:`normalizes <Pushrod.normalize>` down to :obj:`dicts <dict>`.
 
     :param renderer_kwargs: Any extra arguments to pass to the renderer
     """
@@ -249,7 +283,9 @@ def pushrod_view(**renderer_kwargs):
         @wraps(f)
         def wrapper(*view_args, **view_kwargs):
             response = f(*view_args, **view_kwargs)
-            return current_app.extensions['pushrod'].render_response(response, renderer_kwargs=renderer_kwargs)
+            return current_app.extensions['pushrod'].render_response(
+                response,
+                renderer_kwargs=renderer_kwargs)
 
         return wrapper
 
